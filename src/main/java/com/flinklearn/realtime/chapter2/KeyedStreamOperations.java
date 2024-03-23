@@ -17,6 +17,7 @@ Flink distributes events in the DataStream to different task slots based on the 
 Partitioning by key is ideal for aggregation operations that aggregate on a specific key. Each key is then aggregated
 locally in the task slot - this helps to optimize performance.
  */
+
 public class KeyedStreamOperations {
 
     public static void main(String[] args) {
@@ -76,7 +77,7 @@ public class KeyedStreamOperations {
 
             //Print user and running total duration
             userDuration.print();
-            /* When you look at the console, note that the first number in the output (followed by the '>' symbol)
+            /* When you run the program and look at the console, note that the first number in the output (followed by the '>' symbol)
             is the task slot ID, which tells you the specific task slot that is processing a record.
             You will notice that records with a given username always get assigned to the same slot.
             The total duration keeps getting updated as a running total. */
@@ -86,12 +87,13 @@ public class KeyedStreamOperations {
              ****************************************************************************/
 
             //Start the File Stream generator on a separate thread to generate File Stream as the job runs
-            Utils.printHeader("Starting FileStream Generator...");
-            Thread genFileStreamThread = new Thread(new FileStreamDataGenerator());
-            genFileStreamThread.start();
+            Utils.printHeader("Starting File Stream Generator...");
+            Thread fileStreamThread = new Thread(new FileStreamDataGenerator());
+            fileStreamThread.start();
 
-            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called). Here we explicitly call execute() on the streamEnv object to trigger program execution. */
-            streamEnv.execute("Flink Streaming Keyed Stream Example");
+            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called).
+            Here we explicitly call execute() on the streamEnv object to trigger program execution. */
+            streamEnv.execute("Flink Streaming - Keyed Stream Example");
 
         }
         catch(Exception e) {

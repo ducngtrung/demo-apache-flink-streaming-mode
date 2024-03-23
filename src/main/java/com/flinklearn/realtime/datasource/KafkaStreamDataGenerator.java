@@ -1,20 +1,17 @@
 package com.flinklearn.realtime.datasource;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.*;
 
-/****************************************************************************
- * This Generator generates a series of data files in the raw_data folder
- * It is an audit trail data source.
- * This can be used for streaming consumption of data by Flink
- ****************************************************************************/
+/*************************************************************************************
+ * This Generator use Kafka Producer to generate a stream of events
+ * To run this example, you need a running instance of Kafka with 2 topics: flink.kafka.streaming.source and flink.kafka.streaming.sink
+ * This can be used for streaming data consumption by Flink
+ *************************************************************************************/
 
 public class KafkaStreamDataGenerator implements Runnable {
-
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_GREEN = "\u001B[32m";
@@ -22,27 +19,39 @@ public class KafkaStreamDataGenerator implements Runnable {
     public static final String ANSI_BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
-        KafkaStreamDataGenerator fsdg = new KafkaStreamDataGenerator();
-        fsdg.run();
+        KafkaStreamDataGenerator kafkaGenerator = new KafkaStreamDataGenerator();
+        kafkaGenerator.run();
     }
 
     public void run() {
 
         try {
 
-            //Setup Kafka Client
+            //Set connection properties to Kafka cluster
             Properties kafkaProps = new Properties();
-            kafkaProps.put("bootstrap.servers","localhost:9092");
+            kafkaProps.put("client.id", "TestKafkaProducer");
+            //Specify brokers list: "host:port, another_host:port,..."
+            kafkaProps.put("bootstrap.servers", "10.82.81.128:9092");
+                                                //10.82.81.128:9092
+                                                //pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092
+            //Optional properties
+            kafkaProps.put("key.serializer", StringSerializer.class.getName());
+            kafkaProps.put("value.serializer", StringSerializer.class.getName());
+            kafkaProps.put("connections.max.idle.ms", "10000");
+            kafkaProps.put("metadata.max.age.ms", "5000");
+            kafkaProps.put("retries", "3");
+            kafkaProps.put("retry.backoff.ms", "5000");
+            kafkaProps.put("request.timeout.ms", "10000");
 
-            kafkaProps.put("key.serializer",
-                    "org.apache.kafka.common.serialization.StringSerializer");
-            kafkaProps.put("value.serializer",
-                    "org.apache.kafka.common.serialization.StringSerializer");
+            //Set SASL authentication properties
+            kafkaProps.put("security.protocol", "SASL_SSL");
+            kafkaProps.put("sasl.mechanism", "PLAIN");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='SZQPELTAZRUGPCQG' password='TeSPNFqHu0od1OAZMv2flYcJS6Du8jyuUg6SFKdbuJoApxU2z7Ta3XPDHldeFfRl';");
 
-            Producer<String,String> myProducer
-                    = new KafkaProducer<String, String>(kafkaProps);
+            //Create a Kafka producer based on the properties
+            Producer<String,String> kafkaProducer = new KafkaProducer<>(kafkaProps);
 
-            //Define list of users
+            //Define list of application users
             List<String> appUser = new ArrayList<String>();
             appUser.add("Tom");
             appUser.add("Harry");
@@ -63,52 +72,48 @@ public class KafkaStreamDataGenerator implements Runnable {
             //Define a random number generator
             Random random = new Random();
 
-            //Generate 100 sample audit records, one per each file
-            for(int i=0; i < 100; i++) {
+            //Generate 30 sample audit records, each record produces an event
+            for (int i=0; i<20; i++) {
 
                 //Capture current timestamp
                 String currentTime = String.valueOf(System.currentTimeMillis());
-
-                //Generate a random user
+                //Pick a random user
                 String user = appUser.get(random.nextInt(appUser.size()));
-                //Generate a random operation
+                //Pick a random operation
                 String operation = appOperation.get(random.nextInt(appOperation.size()));
-                //Generate a random entity
+                //Pick a random entity
                 String entity= appEntity.get(random.nextInt(appEntity.size()));
-                //Generate a random duration for the operation
-                String duration = String.valueOf(random.nextInt(10) + 1 );
-                //Generate a random value for number of changes
+                //Pick a random duration (from 1 to 10) for the operation
+                String duration = String.valueOf(random.nextInt(10) + 1);
+                //Pick a random value (from 1 to 4) for the number of changes
                 String changeCount = String.valueOf(random.nextInt(4) + 1);
 
-                //Create a CSV Text array
-                String[] csvText = { String.valueOf(i), user, entity,
-                                        operation, currentTime, duration, changeCount} ;
+                //Create a text array to hold this record
+                String[] textArr = {String.valueOf(i), user, entity, operation, currentTime, duration, changeCount};
 
-
-                String recKey = String.valueOf(currentTime);
-                ProducerRecord<String, String> record =
+                //Create a Kafka producer record
+                ProducerRecord<String,String> record =
                         new ProducerRecord<String,String>(
-                                "flink.kafka.streaming.source",
-                                recKey,
-                                String.join(",", csvText)  );
+                                "flink.kafka.streaming.source", //the Kafka topic to which you publish the record
+                                currentTime,    //key
+                                String.join(",", textArr)   //value
+                        );
+                //Publish the producer record to Kafka and collect its metadata for future use
+                RecordMetadata recordMetadata = kafkaProducer.send(record).get();
 
-                RecordMetadata rmd = myProducer.send(record).get();
+                //Use ANSI code to print colored text in console
+                System.out.println(ANSI_PURPLE + "Kafka Stream Generator : Published Event : "
+                            + String.join(",", textArr)  + ANSI_RESET);
 
-                System.out.println(ANSI_PURPLE + "Kafka Stream Generator : Sending Event : "
-                            + String.join(",", csvText)  + ANSI_RESET);
+                //Sleep for a random time (up to 1 sec) before creating next record
+                Thread.sleep(random.nextInt(1000) + 1);
 
-                //Sleep for a random time ( 1 - 3 secs) before the next record.
-                Thread.sleep(random.nextInt(2000) + 1);
             }
-
-
-
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-
 
 }

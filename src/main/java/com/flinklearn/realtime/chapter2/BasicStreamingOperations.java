@@ -21,6 +21,7 @@ import java.io.File;
 /*
 A Flink program that reads a files stream, computes a Map-Reduce operation, and writes to a data sink.
  */
+
 public class BasicStreamingOperations {
 
     public static void main(String[] args) {
@@ -119,12 +120,13 @@ public class BasicStreamingOperations {
              ****************************************************************************/
 
             //Start the File Stream generator on a separate thread to generate File Stream as the job runs
-            Utils.printHeader("Starting FileStream Generator...");
-            Thread genFileStreamThread = new Thread(new FileStreamDataGenerator());
-            genFileStreamThread.start();
+            Utils.printHeader("Starting File Stream Generator...");
+            Thread fileStreamThread = new Thread(new FileStreamDataGenerator());
+            fileStreamThread.start();
 
-            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called). Here we explicitly call execute() on the streamEnv object to trigger program execution. */
-            streamEnv.execute("Flink Streaming Basic Example");
+            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called).
+            Here we explicitly call execute() on the streamEnv object to trigger program execution. */
+            streamEnv.execute("Flink Streaming - Basic Example");
 
         }
         catch(Exception e) {

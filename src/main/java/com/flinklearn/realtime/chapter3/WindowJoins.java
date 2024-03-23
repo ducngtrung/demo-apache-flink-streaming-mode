@@ -21,8 +21,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import java.util.Properties;
 
 /*
-A Flink Program that reads a files stream, computes a Map and Reduce operation,
-and writes to a file output
+A Flink program that joins a files stream with a Kafka topics stream based on the same window.
  */
 
 public class WindowJoins {
@@ -78,7 +77,7 @@ public class WindowJoins {
             properties.setProperty("bootstrap.servers", "localhost:9092");
             properties.setProperty("group.id", "flink.learn.realtime");
 
-            //Setup a Kafka Consumer on Flnk
+            //Setup a Kafka Consumer on Flink
             FlinkKafkaConsumer<String> kafkaConsumer =
                     new FlinkKafkaConsumer<>
                             ("flink.kafka.streaming.source", //topic

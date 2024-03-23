@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Random;
 
 /*************************************************************************************
- * This Generator generates a series of data files in the data/raw_audit_trail folder.
- * It is an audit trail data source.
- * This can be used for streaming consumption of data by Flink.
+ * This Generator generates a series of data files in the data/raw_audit_trail folder
+ * It simulates an audit trail data source
+ * This can be used for streaming data consumption by Flink
  *************************************************************************************/
 
 public class FileStreamDataGenerator implements Runnable {
@@ -31,6 +31,10 @@ public class FileStreamDataGenerator implements Runnable {
     public void run() {
 
         try {
+
+            //Define a data directory to output files, and clean out existing files in the directory
+            String dataDir = "data/raw_audit_trail";
+            FileUtils.cleanDirectory(new File(dataDir));
 
             //Define list of application users
             List<String> appUser = new ArrayList<String>();
@@ -50,15 +54,11 @@ public class FileStreamDataGenerator implements Runnable {
             appEntity.add("Customer");
             appEntity.add("SalesRep");
 
-            //Define a data directory to output files, and clean out existing files in the directory
-            String dataDir = "data/raw_audit_trail";
-            FileUtils.cleanDirectory(new File(dataDir));
-
             //Define a random number generator
             Random random = new Random();
 
             //Generate 30 sample audit records, each record produces a CSV file
-            for (int i=0; i < 30; i++) {
+            for (int i=0; i<30; i++) {
 
                 //Capture current timestamp
                 String currentTime = String.valueOf(System.currentTimeMillis());
@@ -69,21 +69,21 @@ public class FileStreamDataGenerator implements Runnable {
                 //Pick a random entity
                 String entity= appEntity.get(random.nextInt(appEntity.size()));
                 //Pick a random duration (from 1 to 10) for the operation
-                String duration = String.valueOf(random.nextInt(10) + 1 );
+                String duration = String.valueOf(random.nextInt(10) + 1);
                 //Pick a random value (from 1 to 4) for the number of changes
                 String changeCount = String.valueOf(random.nextInt(4) + 1);
 
                 //Create a text array to hold this record
-                String[] csvText = {String.valueOf(i), user, entity, operation, currentTime, duration, changeCount};
+                String[] textArr = {String.valueOf(i), user, entity, operation, currentTime, duration, changeCount};
 
                 //Open a new file for this record
                 FileWriter auditFile = new FileWriter(dataDir + "/audit_trail_" + i + ".csv");
                 CSVWriter auditCSV = new CSVWriter(auditFile);
 
                 //Write the audit record and close the file
-                auditCSV.writeNext(csvText);
-                System.out.println(ANSI_BLUE + "FileStream Generator : Created File : "
-                            + Arrays.toString(csvText) + ANSI_RESET); //Use ANSI code to print colored text in console
+                auditCSV.writeNext(textArr);
+                System.out.println(ANSI_BLUE + "File Stream Generator : Created File : "
+                            + Arrays.toString(textArr) + ANSI_RESET); //Use ANSI code to print colored text in console
                 auditCSV.flush();
                 auditCSV.close();
 

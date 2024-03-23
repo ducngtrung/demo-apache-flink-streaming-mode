@@ -1,6 +1,7 @@
-package com.flinklearn.realtime.chapter6;
+package com.flinklearn.realtime.chapter6_exercise;
 
 import com.flinklearn.realtime.common.Utils;
+import com.flinklearn.realtime.datasource.BrowserStreamDataGenerator;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.ValueState;
@@ -22,7 +23,7 @@ A Flink Program that reads a files stream, computes a Map and Reduce operation,
 and writes to a file output
  */
 
-public class CourseUseCase {
+public class AnalyzeBrowserEvents {
 
     public static void main(String[] args) {
 

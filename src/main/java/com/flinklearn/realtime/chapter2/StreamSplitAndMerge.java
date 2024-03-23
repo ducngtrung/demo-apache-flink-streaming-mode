@@ -21,6 +21,7 @@ import org.apache.flink.util.OutputTag;
 /*
 A Flink program to demonstrate splitting data streams (using Side Output) and merging multiple streams.
  */
+
 public class StreamSplitAndMerge {
 
     public static void main(String[] args) {
@@ -33,8 +34,6 @@ public class StreamSplitAndMerge {
 
             // Set up the streaming execution environment
             final StreamExecutionEnvironment streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
-
-            //Keeps the ordering of records. Else multiple threads can change the sequence of printing.
 
             /****************************************************************************
              *                  Read CSV File Stream into a DataStream
@@ -116,12 +115,14 @@ public class StreamSplitAndMerge {
              *                       Merge two streams into one
              ****************************************************************************/
 
-            /* The customerTrail and salesRepTrail streams are of different formats. One is a POJO object called and the other is a Tuple. We can vertically combine them and push them into the same format using the connect() operator. */
+            /* The customerTrail and salesRepTrail streams are of different formats: one is a POJO object and the other is a Tuple.
+            We can vertically combine them and push them into the same format using the connect() operator. */
             ConnectedStreams<AuditTrail, Tuple2<String,Integer>> mergedTrail
                     = customerTrail
                         .connect(salesRepTrail);
 
-            /* The connected stream (mergedTrail) has both data types (POJO object and Tuple), but it is still not fully merged. We need to execute the CoMapFunction to complete the merge. */
+            /* The connected stream has both data types (POJO object and Tuple), but it is still not fully merged.
+            We need to execute the CoMapFunction on the mergedTrail to complete the merge. */
             DataStream<Tuple3<String,String,Integer>> processedTrail
                 = mergedTrail
                     .map( new CoMapFunction<
@@ -146,7 +147,9 @@ public class StreamSplitAndMerge {
                                         ("Stream-SalesRep",salesRepTrail.f0,1);
                         }
 
-                        /* Both map methods need to emit data in the same output format. In this case, both of them emit a tuple of 3 attributes: the name of the stream, the username and a count of 1 for each record. The output is vertically combined as a single DataStream called processedTrail, with each record belonging to either of the individual input streams. */
+                        /* Both map methods need to emit data in the same output format.
+                        In this case, both of them emit a tuple of 3 attributes: the name of the stream, the username and a count of 1 for each record.
+                        The output is vertically combined as a single DataStream called processedTrail, with each record belonging to either of the individual input streams. */
                     } );
 
             //Run the combined DataStream through a Map function to print each record in that stream
@@ -169,12 +172,13 @@ public class StreamSplitAndMerge {
              ****************************************************************************/
 
             //Start the File Stream generator on a separate thread to generate File Stream as the job runs
-            Utils.printHeader("Starting FileStream Generator...");
-            Thread genFileStreamThread = new Thread(new FileStreamDataGenerator());
-            genFileStreamThread.start();
+            Utils.printHeader("Starting File Stream Generator...");
+            Thread fileStreamThread = new Thread(new FileStreamDataGenerator());
+            fileStreamThread.start();
 
-            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called). Here we explicitly call execute() on the streamEnv object to trigger program execution. */
-            streamEnv.execute("Flink Streaming Split-Merge Example");
+            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called).
+            Here we explicitly call execute() on the streamEnv object to trigger program execution. */
+            streamEnv.execute("Flink Streaming - Split-Merge Example");
 
         }
         catch(Exception e) {

@@ -1,4 +1,4 @@
-package com.flinklearn.realtime.chapter6;
+package com.flinklearn.realtime.datasource;
 
 import com.opencsv.CSVWriter;
 import org.apache.commons.io.FileUtils;
@@ -10,11 +10,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/****************************************************************************
- * This Generator generates a series of data files in the raw_data folder
- * It is an audit trail data source.
- * This can be used for streaming consumption of data by Flink
- ****************************************************************************/
+/*************************************************************************************
+ * This Generator generates a series of data files in the data/raw_browser_events folder
+ * It simulates a browser events data source
+ * This can be used for streaming data consumption by Flink
+ *************************************************************************************/
 
 public class BrowserStreamDataGenerator implements Runnable {
 
@@ -56,8 +56,8 @@ public class BrowserStreamDataGenerator implements Runnable {
             //Define a random number generator
             Random random = new Random();
 
-            //Generate 100 sample audit records, one per each file
-            for(int i=0; i < 100; i++) {
+            //Generate 30 sample audit records, one per each file
+            for(int i=0; i<30; i++) {
 
                 //Capture current timestamp
                 String currentTime = String.valueOf(System.currentTimeMillis());

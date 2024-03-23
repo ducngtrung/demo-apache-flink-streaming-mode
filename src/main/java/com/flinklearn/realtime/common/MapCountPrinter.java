@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 
 public class MapCountPrinter {
 
+    //Print the count of records received by a DataStream in a 3-second time window
     public static void printCount(DataStream<Object> dsObj, String message) {
 
         dsObj
