@@ -26,6 +26,7 @@ public class AuditTrail {
         this.timestamp = Long.valueOf(attributes[4]);
         this.duration = Integer.valueOf(attributes[5]);
         this.count = Integer.valueOf(attributes[6]);
+
     }
 
     public int getId() {

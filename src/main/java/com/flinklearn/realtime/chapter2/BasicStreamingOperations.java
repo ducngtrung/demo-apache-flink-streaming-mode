@@ -83,9 +83,8 @@ public class BasicStreamingOperations {
             //Window by 3 secs, count the number of records and save to output
             DataStream<Tuple2<String,Integer>> recordCount
                     = auditTrailObj
-                        .map(i ->
-                                new Tuple2<String,Integer>(String.valueOf(System.currentTimeMillis()),1)
-                        )  //Each record is counted as 1
+                        .map(i -> new Tuple2<String,Integer>
+                                (String.valueOf(System.currentTimeMillis()),1))  //Each record is counted as 1
                         .returns(Types.TUPLE(Types.STRING,Types.INT))
                         .timeWindowAll(Time.seconds(3))  //Use a time window of 3 secs
                         //Use Reduce to accumulate the count of records in the interval, while keeping the starting timestamp

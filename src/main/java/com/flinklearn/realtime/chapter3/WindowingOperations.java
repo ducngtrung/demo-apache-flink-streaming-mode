@@ -41,13 +41,18 @@ public class WindowingOperations {
             //Set connection properties to Kafka cluster
             Properties kafkaProps = new Properties();
             kafkaProps.setProperty("group.id", "flinklearn.realtime");
+
             //Specify brokers list: "host:port, another_host:port,..."
-            kafkaProps.setProperty("bootstrap.servers", "pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092");
+            kafkaProps.setProperty("bootstrap.servers", "10.82.81.128:9092,10.82.81.157:9092");
+//            kafkaProps.setProperty("bootstrap.servers", "pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092");
 
             //Set SASL authentication properties
-            kafkaProps.put("security.protocol", "SASL_SSL");
+            kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
             kafkaProps.put("sasl.mechanism", "PLAIN");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='SZQPELTAZRUGPCQG' password='TeSPNFqHu0od1OAZMv2flYcJS6Du8jyuUg6SFKdbuJoApxU2z7Ta3XPDHldeFfRl';");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='ani' password='YW5pY2x1c3Rlcg';");
+//            kafkaProps.put("security.protocol", "SASL_SSL");
+//            kafkaProps.put("sasl.mechanism", "PLAIN");
+//            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='SZQPELTAZRUGPCQG' password='TeSPNFqHu0od1OAZMv2flYcJS6Du8jyuUg6SFKdbuJoApxU2z7Ta3XPDHldeFfRl';");
 
             //Create a Kafka consumer based on the properties
             FlinkKafkaConsumer<String> kafkaConsumer =
@@ -70,62 +75,46 @@ public class WindowingOperations {
                             System.out.println("--- Received Record : " + auditStr);
                             return new AuditTrail(auditStr);
                         } );
-            /* You'll see that when the Kafka Stream Generator has started sending events to Kafka, the operation code consumes data from Kafka in real time and print out only the latest messages. */
+            /* When the Kafka Generator has started sending events to Kafka, the operation code consumes data from Kafka in real time and prints only the latest messages. */
 
-//            /****************************************************************************
-//             *                            Use Sliding window
-//             ****************************************************************************/
-//
-//            //Compute the count of events, minimum timestamp and maximum timestamp
-//            //for a sliding window interval of 10 seconds, sliding by 5 seconds
-//            DataStream<Tuple4<String, Integer, Long, Long>>
-//                    slidingSummary
-//                        = auditTrailObj
-//                    .map(i
-//                            -> new Tuple4<String, Integer, Long, Long>
-//                            (String.valueOf(System.currentTimeMillis()), //Current Time
-//                                    1,      //Count each Record
-//                                    i.getTimestamp(),   //Minimum Timestamp
-//                                    i.getTimestamp()))  //Maximum Timestamp
-//                    .returns(Types.TUPLE(Types.STRING,
-//                            Types.INT,
-//                            Types.LONG,
-//                            Types.LONG))
-//                    .timeWindowAll(
-//                            Time.seconds(10), //Window Size
-//                            Time.seconds(5))  //Slide by 5
-//                    .reduce((x, y)
-//                            -> new Tuple4<String, Integer, Long, Long>(
-//                            x.f0,
-//                            x.f1 + y.f1,
-//                            Math.min(x.f2, y.f2),
-//                            Math.max(x.f3, y.f3)));
-//
-//            //Pretty print
-//            slidingSummary.map(new MapFunction<Tuple4<String, Integer, Long, Long>, Object>() {
-//
-//                @Override
-//                public Object map(Tuple4<String, Integer, Long, Long> slidingSummary)
-//                        throws Exception {
-//
-//                    SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-//
-//                    String minTime
-//                            = format.format(new Date(Long.valueOf(slidingSummary.f2)));
-//
-//                    String maxTime
-//                            = format.format(new Date(Long.valueOf(slidingSummary.f3)));
-//
-//                    System.out.println("Sliding Summary : "
-//                        + (new Date()).toString()
-//                        + " Start Time : " + minTime
-//                        + " End Time : " + maxTime
-//                        + " Count : " + slidingSummary.f1);
-//
-//                    return null;
-//                }
-//            });
-//
+            /****************************************************************************
+             *                            Use Sliding window
+             ****************************************************************************/
+
+            /* Compute the count of events, minimum timestamp and maximum timestamp for each interval of 10 seconds, sliding by 5 seconds. */
+            DataStream<Tuple4<String, Integer, Long, Long>> slidingSummary
+                    = auditTrailObj
+                        .map(i -> new Tuple4<String, Integer, Long, Long>
+                                (String.valueOf(System.currentTimeMillis()), //Current timestamp
+                                1,      //Count each record as 1
+                                i.getTimestamp(),   //Minimum Timestamp
+                                i.getTimestamp()))  //Maximum Timestamp
+                        .returns(Types.TUPLE(Types.STRING, Types.INT, Types.LONG, Types.LONG))
+                        .timeWindowAll(
+                                Time.seconds(10), //Window size
+                                Time.seconds(5))  //Slide by 5
+                        .reduce((x, y) -> new Tuple4<String, Integer, Long, Long>
+                                        (x.f0,                  //Timestamp
+                                        x.f1 + y.f1,            //Accumulate the count of records
+                                        Math.min(x.f2, y.f2),   //Compare to find the minimum timestamp
+                                        Math.max(x.f3, y.f3))); //Compare to find the maximum timestamp
+
+            //Pretty print
+            slidingSummary
+                    .map( new MapFunction<Tuple4<String, Integer, Long, Long>, Object>() {
+                        @Override
+                        public Object map(Tuple4<String, Integer, Long, Long> slidingSummary) throws Exception {
+                            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+                            String minTime = format.format(new Date(slidingSummary.f2));
+                            String maxTime = format.format(new Date(slidingSummary.f3));
+                            System.out.println("Sliding Summary: " + (new Date()).toString()
+                                + " Start Time: " + minTime
+                                + " End Time: " + maxTime
+                                + " Count: " + slidingSummary.f1);
+                            return null;
+                        }
+                    } );
+
 //            /****************************************************************************
 //             *                            Use Session window
 //             ****************************************************************************/
