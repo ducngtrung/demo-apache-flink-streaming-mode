@@ -35,15 +35,11 @@ public class KafkaStreamDataGenerator implements Runnable {
 
             //Specify brokers list: "host:port,another_host:port,..."
             kafkaProps.put("bootstrap.servers", "10.82.81.128:9092,10.82.81.157:9092");
-//            kafkaProps.put("bootstrap.servers", "pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092");
 
             //Set SASL authentication properties
             kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
             kafkaProps.put("sasl.mechanism", "PLAIN");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='ani' password='YW5pY2x1c3Rlcg';");
-//            kafkaProps.put("security.protocol", "SASL_SSL");
-//            kafkaProps.put("sasl.mechanism", "PLAIN");
-//            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='SZQPELTAZRUGPCQG' password='TeSPNFqHu0od1OAZMv2flYcJS6Du8jyuUg6SFKdbuJoApxU2z7Ta3XPDHldeFfRl';");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';");
 
             //Optional properties
             kafkaProps.put("connections.max.idle.ms", "10000");

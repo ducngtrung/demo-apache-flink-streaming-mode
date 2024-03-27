@@ -44,15 +44,11 @@ public class WindowingOperations {
 
             //Specify brokers list: "host:port, another_host:port,..."
             kafkaProps.setProperty("bootstrap.servers", "10.82.81.128:9092,10.82.81.157:9092");
-//            kafkaProps.setProperty("bootstrap.servers", "pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092");
 
             //Set SASL authentication properties
             kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
             kafkaProps.put("sasl.mechanism", "PLAIN");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='ani' password='YW5pY2x1c3Rlcg';");
-//            kafkaProps.put("security.protocol", "SASL_SSL");
-//            kafkaProps.put("sasl.mechanism", "PLAIN");
-//            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='SZQPELTAZRUGPCQG' password='TeSPNFqHu0od1OAZMv2flYcJS6Du8jyuUg6SFKdbuJoApxU2z7Ta3XPDHldeFfRl';");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';");
 
             //Create a Kafka consumer based on the properties
             FlinkKafkaConsumer<String> kafkaConsumer =
@@ -107,10 +103,10 @@ public class WindowingOperations {
                             SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
                             String minTime = format.format(new Date(slidingSummary.f2));
                             String maxTime = format.format(new Date(slidingSummary.f3));
-                            System.out.println("Sliding Summary: " + (new Date()).toString()
-                                + " Start Time: " + minTime
-                                + " End Time: " + maxTime
-                                + " Count: " + slidingSummary.f1);
+                            System.out.println("--- Sliding Summary: " + (new Date()).toString()
+                                + " - Start Time: " + minTime
+                                + " - End Time: " + maxTime
+                                + " - Count: " + slidingSummary.f1);
                             return null;
                         }
                     } );
@@ -163,12 +159,11 @@ public class WindowingOperations {
 //                    String maxTime
 //                            = format.format(new Date(Long.valueOf(sessionSummary.f3)));
 //
-//                    System.out.println("Session Summary : "
-//                            + (new Date()).toString()
-//                            + " User : " + sessionSummary.f0
-//                            + " Start Time : " + minTime
-//                            + " End Time : " + maxTime
-//                            + " Count : " + sessionSummary.f1);
+//                    System.out.println("--- Session Summary: " + (new Date()).toString()
+//                            + " - User: " + sessionSummary.f0
+//                            + " - Start Time: " + minTime
+//                            + " - End Time: " + maxTime
+//                            + " - Count: " + sessionSummary.f1);
 //
 //                    return null;
 //                }
