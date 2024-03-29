@@ -14,9 +14,7 @@ import java.util.*;
 public class KafkaStreamDataGenerator implements Runnable {
 
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_PURPLE = "\u001B[35m";
-    public static final String ANSI_BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
         KafkaStreamDataGenerator kafkaGenerator = new KafkaStreamDataGenerator();
@@ -103,7 +101,7 @@ public class KafkaStreamDataGenerator implements Runnable {
 
                 //Use ANSI code to print colored text in console
                 System.out.println(ANSI_PURPLE + "Kafka Stream Generator : Published Event : "
-                            + String.join(",", textArr)  + ANSI_RESET);
+                            + String.join(",", textArr) + ANSI_RESET);
 
                 //Sleep for a random time (up to 1 sec) before creating next record
                 Thread.sleep(random.nextInt(1000) + 1);

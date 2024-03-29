@@ -67,8 +67,10 @@ public class KeyedStreamOperations {
                              @Override
                              public Tuple2<String,Integer> map(String auditStr) {
                                  System.out.println("--- Received Record : " + auditStr);
-                                 AuditTrail auditTrailObject = new AuditTrail(auditStr); //Interpret the string and convert it to an AuditTrail object
-                                 return new Tuple2<String,Integer>(auditTrailObject.user,auditTrailObject.duration);
+                                 //Interpret the string and convert it to an AuditTrail object
+                                 AuditTrail auditTrailObject = new AuditTrail(auditStr);
+                                 return new Tuple2<String,Integer>
+                                         (auditTrailObject.user,auditTrailObject.duration);
                              }
                         } )
                         .keyBy(0)  //Partition by user, and distribute the partitions to separate task slots
@@ -78,9 +80,8 @@ public class KeyedStreamOperations {
             //Print user and running total duration
             userDuration.print();
             /* When you run the program and look at the console, note that the first number in the output (followed by the '>' symbol)
-            is the task slot ID, which tells you the specific task slot that is processing a record.
-            You will notice that records with a given username always get assigned to the same slot.
-            The total duration keeps getting updated as a running total. */
+            is the task slot ID, which tells you the specific task slot that is processing a record. Records with the same username
+            get assigned to the same slot. The total duration keeps getting updated as a running total. */
 
             /****************************************************************************
              *           Set up data source and execute the streaming pipeline

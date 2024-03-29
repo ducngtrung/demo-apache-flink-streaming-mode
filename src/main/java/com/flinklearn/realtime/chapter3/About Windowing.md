@@ -16,7 +16,7 @@ This is an example of a Sliding Window of 10 seconds that slides by 5 seconds. A
 
 ![Session Window](../../../../../resources/Session-window.png "Session Window")
 
-As long as the events occur within 5 seconds of each other, they continue belonging to the same session. In this case, there is a gap in the events from the 19th second to the 26th second, which is longer than 5 seconds, so the first window ends and the second window starts.
+As long as an event occurs within 5 seconds from its predecessor, they belong to the same session. In this case, there is a gap in the events between the 19th second and the 26th second, which is longer than 5 seconds, so the first window ends and the second window starts.
 
 4. A **Global Window** takes the entire stream as one single window.
 

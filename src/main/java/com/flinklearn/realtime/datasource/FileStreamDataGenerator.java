@@ -19,9 +19,7 @@ import java.util.Random;
 public class FileStreamDataGenerator implements Runnable {
 
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_CYAN = "\u001B[36m";
-    public static final String ANSI_BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
         FileStreamDataGenerator fileGenerator = new FileStreamDataGenerator();
@@ -82,7 +80,7 @@ public class FileStreamDataGenerator implements Runnable {
 
                 //Write the audit record and close the file
                 auditCSV.writeNext(textArr);
-                System.out.println(ANSI_BLUE + "File Stream Generator : Created File : "
+                System.out.println(ANSI_CYAN + "File Stream Generator : Created File : "
                             + Arrays.toString(textArr) + ANSI_RESET); //Use ANSI code to print colored text in console
                 auditCSV.flush();
                 auditCSV.close();

@@ -23,6 +23,10 @@ A Flink program that reads a Kafka topics stream and perform window operations o
 
 public class WindowingOperations {
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+
     public static void main(String[] args) {
 
         try{
@@ -87,8 +91,8 @@ public class WindowingOperations {
                                 i.getTimestamp()))  //Maximum Timestamp
                         .returns(Types.TUPLE(Types.STRING, Types.INT, Types.LONG, Types.LONG))
                         .timeWindowAll(
-                                Time.seconds(10), //Window size
-                                Time.seconds(5))  //Slide by 5
+                                Time.seconds(10),   //Window size
+                                Time.seconds(5))    //Slide by 5
                         .reduce((x, y) -> new Tuple4<String, Integer, Long, Long>
                                         (x.f0,                  //Timestamp
                                         x.f1 + y.f1,            //Accumulate the count of records
@@ -100,74 +104,55 @@ public class WindowingOperations {
                     .map( new MapFunction<Tuple4<String, Integer, Long, Long>, Object>() {
                         @Override
                         public Object map(Tuple4<String, Integer, Long, Long> slidingSummary) throws Exception {
-                            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                            String minTime = format.format(new Date(slidingSummary.f2));
-                            String maxTime = format.format(new Date(slidingSummary.f3));
-                            System.out.println("--- Sliding Summary: " + (new Date()).toString()
-                                + " - Start Time: " + minTime
-                                + " - End Time: " + maxTime
-                                + " - Count: " + slidingSummary.f1);
+                            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                            String minTime = timeFormat.format(new Date(slidingSummary.f2));
+                            String maxTime = timeFormat.format(new Date(slidingSummary.f3));
+                            System.out.println(ANSI_GREEN + "--- Sliding Summary: " + (new Date()).toString()
+                                + " - Min Time: " + minTime
+                                + " - Max Time: " + maxTime
+                                + " - Count: " + slidingSummary.f1 + ANSI_RESET);
                             return null;
                         }
                     } );
 
-//            /****************************************************************************
-//             *                            Use Session window
-//             ****************************************************************************/
-//
-//            //Execute the same example as before using Session windows
-//            //Partition by User and use a window gap of 5 seconds.
-//            DataStream<Tuple4<String, Integer, Long, Long>>
-//                    sessionSummary
-//                    = auditTrailObj
-//                    .map(i
-//                            -> new Tuple4<String, Integer, Long, Long>
-//                            (i.getUser(), //Get user
-//                                    1,      //Count each Record
-//                                    i.getTimestamp(),   //Minimum Timestamp
-//                                    i.getTimestamp()))  //Maximum Timestamp
-//                    .returns(Types.TUPLE(Types.STRING,
-//                            Types.INT,
-//                            Types.LONG,
-//                            Types.LONG))
-//
-//                    .keyBy(0) //Key by user
-//
-//                    .window(ProcessingTimeSessionWindows
-//                            .withGap(Time.seconds(5)))
-//
-//                    .reduce((x, y)
-//                            -> new Tuple4<String, Integer, Long, Long>(
-//                            x.f0,
-//                            x.f1 + y.f1,
-//                            Math.min(x.f2, y.f2),
-//                            Math.max(x.f3, y.f3)));
-//
-//            //Pretty print
-//            sessionSummary.map(new MapFunction<Tuple4<String, Integer,
-//                    Long, Long>, Object>() {
-//
-//                @Override
-//                public Object map(Tuple4<String, Integer, Long, Long> sessionSummary)
-//                        throws Exception {
-//
-//                    SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-//
-//                    String minTime
-//                            = format.format(new Date(Long.valueOf(sessionSummary.f2)));
-//
-//                    String maxTime
-//                            = format.format(new Date(Long.valueOf(sessionSummary.f3)));
-//
-//                    System.out.println("--- Session Summary: " + (new Date()).toString()
-//                            + " - User: " + sessionSummary.f0
-//                            + " - Start Time: " + minTime
-//                            + " - End Time: " + maxTime
-//                            + " - Count: " + sessionSummary.f1);
-//
-//                    return null;
-//                }
-//            });
+            /****************************************************************************
+             *                            Use Session window
+             ****************************************************************************/
+
+            /* Compute the count of events, minimum timestamp and maximum timestamp for each session window, partitioned by user and use a window gap of 5 seconds.
+            This means if a given user does not have any event within 5 seconds, the current session ends and the next session will start. */
+            DataStream<Tuple4<String, Integer, Long, Long>> sessionSummary
+                    = auditTrailObj
+                        .map(i -> new Tuple4<String, Integer, Long, Long>
+                                (i.getUser(), //User
+                                1,            //Count each record as 1
+                                i.getTimestamp(),   //Minimum Timestamp
+                                i.getTimestamp()))  //Maximum Timestamp
+                        .returns(Types.TUPLE(Types.STRING, Types.INT, Types.LONG, Types.LONG))
+                        .keyBy(0)   //Partition by user
+                        .window(ProcessingTimeSessionWindows.withGap(Time.seconds(5)))
+                        .reduce((x, y) -> new Tuple4<String, Integer, Long, Long>
+                                        (x.f0,                  //User
+                                        x.f1 + y.f1,            //Accumulate the count of records
+                                        Math.min(x.f2, y.f2),   //Compare to find the minimum timestamp
+                                        Math.max(x.f3, y.f3))); //Compare to find the maximum timestamp
+
+            //Pretty print
+            sessionSummary
+                    .map( new MapFunction<Tuple4<String, Integer, Long, Long>, Object>() {
+                        @Override
+                        public Object map(Tuple4<String, Integer, Long, Long> sessionSummary) throws Exception {
+                            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                            String minTime = timeFormat.format(new Date(sessionSummary.f2));
+                            String maxTime = timeFormat.format(new Date(sessionSummary.f3));
+                            System.out.println(ANSI_BLUE + "--- Session Summary: " + (new Date()).toString()
+                                    + " - User: " + sessionSummary.f0
+                                    + " - Min Time: " + minTime
+                                    + " - Max Time: " + maxTime
+                                    + " - Count: " + sessionSummary.f1 + ANSI_RESET);
+                            return null;
+                        }
+                    } );
 
             /****************************************************************************
              *            Set up data source and execute the streaming pipeline
