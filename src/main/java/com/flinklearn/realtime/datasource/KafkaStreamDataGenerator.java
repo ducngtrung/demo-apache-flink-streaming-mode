@@ -37,7 +37,7 @@ public class KafkaStreamDataGenerator implements Runnable {
             //Set SASL authentication properties
             kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
             kafkaProps.put("sasl.mechanism", "PLAIN");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='ani' password='YW5pY2x1c3Rlcg';");
 
             //Optional properties
             kafkaProps.put("connections.max.idle.ms", "10000");
@@ -70,7 +70,8 @@ public class KafkaStreamDataGenerator implements Runnable {
             //Define a random number generator
             Random random = new Random();
 
-            //Generate 20 sample audit records, each record produces an event
+            /* Generate 20 sample audit records, each record produces an event
+            (using the same structure as CSV files in the data/raw_audit_trail folder) */
             for (int i=0; i<20; i++) {
 
                 //Capture current timestamp

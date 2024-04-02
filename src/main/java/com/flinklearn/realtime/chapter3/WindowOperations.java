@@ -18,10 +18,10 @@ import java.util.Date;
 import java.util.Properties;
 
 /*
-A Flink program that reads a Kafka topics stream and perform window operations on Sliding window and Session window.
+A Flink program that reads a Kafka topic stream and perform window operations on Sliding window and Session window.
  */
 
-public class WindowingOperations {
+public class WindowOperations {
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_GREEN = "\u001B[32m";
@@ -35,7 +35,7 @@ public class WindowingOperations {
              *                         Set up Flink environment
              ****************************************************************************/
 
-            // Set up the streaming execution environment
+            //Set up the streaming execution environment
             final StreamExecutionEnvironment streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
 
             /****************************************************************************
@@ -52,7 +52,7 @@ public class WindowingOperations {
             //Set SASL authentication properties
             kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
             kafkaProps.put("sasl.mechanism", "PLAIN");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username='ani' password='YW5pY2x1c3Rlcg';");
 
             //Create a Kafka consumer based on the properties
             FlinkKafkaConsumer<String> kafkaConsumer =
@@ -120,7 +120,7 @@ public class WindowingOperations {
              ****************************************************************************/
 
             /* Compute the count of events, minimum timestamp and maximum timestamp for each session window, partitioned by user and use a window gap of 5 seconds.
-            This means if a given user does not have any event within 5 seconds, the current session ends and the next session will start. */
+            This means if a given user has not produced any new event in the last 5 seconds, the current session ends and the next session will start. */
             DataStream<Tuple4<String, Integer, Long, Long>> sessionSummary
                     = auditTrailObj
                         .map(i -> new Tuple4<String, Integer, Long, Long>
@@ -130,7 +130,7 @@ public class WindowingOperations {
                                 i.getTimestamp()))  //Maximum Timestamp
                         .returns(Types.TUPLE(Types.STRING, Types.INT, Types.LONG, Types.LONG))
                         .keyBy(0)   //Partition by user
-                        .window(ProcessingTimeSessionWindows.withGap(Time.seconds(5)))
+                        .window(ProcessingTimeSessionWindows.withGap(Time.seconds(5))) //"Processing Time" means that Flink will use timestamps on íts processor as timestamps for windowing. Processing Time is different from Event Time, which is the time when an event actually happened.
                         .reduce((x, y) -> new Tuple4<String, Integer, Long, Long>
                                         (x.f0,                  //User
                                         x.f1 + y.f1,            //Accumulate the count of records
@@ -158,7 +158,7 @@ public class WindowingOperations {
              *            Set up data source and execute the streaming pipeline
              ****************************************************************************/
 
-            //Start the Kafka Stream generator on a separate thread to generate Kafka Stream as the job runs
+            //Start the Kafka Stream generator on a separate thread to generate Kafka stream as the job runs
             Utils.printHeader("Starting Kafka Stream Generator...");
             Thread kafkaGeneratorThread = new Thread(new KafkaStreamDataGenerator());
             kafkaGeneratorThread.start();

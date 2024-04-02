@@ -87,7 +87,7 @@ public class KeyedStreamOperations {
              *           Set up data source and execute the streaming pipeline
              ****************************************************************************/
 
-            //Start the File Stream generator on a separate thread to generate File Stream as the job runs
+            //Start the File Stream generator on a separate thread to generate file stream as the job runs
             Utils.printHeader("Starting File Stream Generator...");
             Thread fileStreamThread = new Thread(new FileStreamDataGenerator());
             fileStreamThread.start();
