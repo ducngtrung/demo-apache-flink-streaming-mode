@@ -18,15 +18,12 @@ import java.util.Random;
 
 public class BrowserStreamDataGenerator implements Runnable {
 
-
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
-        BrowserStreamDataGenerator fsdg = new BrowserStreamDataGenerator();
-        fsdg.run();
+        BrowserStreamDataGenerator dataGenerator = new BrowserStreamDataGenerator();
+        dataGenerator.run();
     }
 
     public void run() {
@@ -80,7 +77,7 @@ public class BrowserStreamDataGenerator implements Runnable {
                 //Write the audit record and close the file
                 auditCSV.writeNext(csvText);
 
-                System.out.println(ANSI_BLUE + "Browser Stream Generator : Creating File : "
+                System.out.println(ANSI_BLUE + "Browser Stream Generator : Created File : "
                             + Arrays.toString(csvText) + ANSI_RESET);
 
                 auditCSV.flush();

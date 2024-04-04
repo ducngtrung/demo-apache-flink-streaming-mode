@@ -26,60 +26,65 @@ import java.util.Date;
 import java.util.Properties;
 
 /*
-A Flink Program that reads a files stream, computes a Map and Reduce operation,
-and writes to a file output
+A Flink program that processes a watermarked data stream based on Event Time and writes the result to a Kafka sink.
  */
 
 public class EventTimeOperations {
+
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_GREEN = "\u001B[32m";
 
     public static void main(String[] args) {
 
         try{
 
             /****************************************************************************
-             *                 Setup Flink environment.
+             *                         Set up Flink environment
              ****************************************************************************/
 
-            // Set up the streaming execution environment
-            final StreamExecutionEnvironment streamEnv
-                        = StreamExecutionEnvironment.getExecutionEnvironment();
+            //Set up the streaming execution environment
+            final StreamExecutionEnvironment streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
 
             streamEnv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+            /* Set the parallelism to 1 for now to ensure there's only one Flink task slot processing all events in the job,
+            so that the event flow is processed in sequence; otherwise, multiple threads can change the order of event processing. */
             streamEnv.setParallelism(1);
 
             /****************************************************************************
-             *                  Read CSV File Stream into a DataStream.
+             *                  Read CSV File Stream into a DataStream
              ****************************************************************************/
 
-            //Define the data directory to monitor for new files
+            //Define directory to monitor for new files
             String dataDir = "data/raw_audit_trail";
 
-            //Define the text input format based on the directory
+            /* In order to read data from a data source, Flink needs to create a data source connection and attach it to a DataStream object.
+            For a file-based data source, we define a text input format pointed to the directory where the files are created. */
             TextInputFormat auditFormat = new TextInputFormat(
-                    new Path(dataDir));
+                    new Path(dataDir)
+            );
 
-            //Create a Datastream based on the directory
+            //Create a DataStream to read content from the directory
             DataStream<String> auditTrailStr
-                        = streamEnv.readFile(auditFormat,
-                            dataDir,    //Director to monitor
-                            FileProcessingMode.PROCESS_CONTINUOUSLY,
-                            1000); //monitor interval
+                    = streamEnv.readFile(
+                        auditFormat,    //Specify the file format
+                        dataDir,        //Specify the directory to monitor
+                        FileProcessingMode.PROCESS_CONTINUOUSLY,  //Flink will continuously monitor the directory for any new or recently changed files
+                        1000    //Monitor interval (1 sec)
+                    );
 
-            //Convert each record to an Object
+            //Use Map to convert each record in the DataStream to an AuditTrail object (POJO class)
             DataStream<AuditTrail> auditTrailObj
                     = auditTrailStr
-                        .map(new MapFunction<String,AuditTrail>() {
-                            @Override
-                            public AuditTrail map(String auditStr) {
-                                System.out.println("--- Received Record : " + auditStr);
-                                return new AuditTrail(auditStr);
-                            }
-                        });
+                        .map( (MapFunction<String, AuditTrail>) auditStr -> {
+                            System.out.println("--- Received File Record : " + auditStr);
+                            return new AuditTrail(auditStr);
+                        } );
 
             /****************************************************************************
-             *                  Setup Event Time and Watermarks
+             *                     Set up Event Time and Watermarks
              ****************************************************************************/
-            //Create a water marked Data Stream
+
+            //Create a Data Stream with watermarks
             DataStream<AuditTrail> auditTrailWithET
                     =auditTrailObj.assignTimestampsAndWatermarks(
                             (new AssignerWithPunctuatedWatermarks<AuditTrail>() {
@@ -121,7 +126,7 @@ public class EventTimeOperations {
                         }));
 
             /****************************************************************************
-             *                  Process a Watermarked Stream
+             *                     Process a watermarked DataStream
              ***************************************************************************/
 
             //Create a Separate Trail for Late events
@@ -155,10 +160,10 @@ public class EventTimeOperations {
                                 String eventTime
                                         = (new Date(Long.valueOf(minuteSummary.f0))).toString();
 
-                                System.out.println("Summary : "
+                                System.out.println(ANSI_GREEN + "Summary : "
                                         + " Current Time : " + currentTime
                                         + " Event Time : " + eventTime
-                                        + " Count :" + minuteSummary.f1);
+                                        + " Count :" + minuteSummary.f1 + ANSI_RESET);
 
                                 return minuteSummary;
                             }
@@ -171,7 +176,7 @@ public class EventTimeOperations {
 
 
             /****************************************************************************
-             *                  Send Processed Results to a Kafka Sink
+             *                Send the processed results to a Kafka sink
              ****************************************************************************/
 
             //Setup Properties for Kafka connection
@@ -214,17 +219,18 @@ public class EventTimeOperations {
                     //Add Producer to Sink
                     .addSink(kafkaProducer);
 
-
             /****************************************************************************
-             *                  Setup data source and execute the Flink pipeline
+             *           Set up data source and execute the streaming pipeline
              ****************************************************************************/
-            //Start the File Stream generator on a separate thread
-            Utils.printHeader("Starting File Data Generator...");
-            Thread genThread = new Thread(new FileStreamDataGenerator());
-            genThread.start();
 
-            // execute the streaming pipeline
-            streamEnv.execute("Flink Streaming Event Timestamp Example");
+            //Start the File Stream generator on a separate thread to generate file stream as the job runs
+            Utils.printHeader("Starting File Stream Generator...");
+            Thread fileStreamThread = new Thread(new FileStreamDataGenerator());
+            fileStreamThread.start();
+
+            /* Flink does lazy execution (it does not execute any code until an execute method or a data write operation is called).
+            Here we explicitly call execute() on the streamEnv object to trigger program execution. */
+            streamEnv.execute("Flink Streaming - Event Time Example");
 
         }
         catch(Exception e) {

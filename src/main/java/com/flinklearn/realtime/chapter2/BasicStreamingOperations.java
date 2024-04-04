@@ -19,7 +19,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import java.io.File;
 
 /*
-A Flink program that reads a files stream, computes a Map-Reduce operation, and writes to a data sink.
+A Flink program that reads a file stream, computes a Map-Reduce operation, and writes the result to a file sink.
  */
 
 public class BasicStreamingOperations {
@@ -91,7 +91,7 @@ public class BasicStreamingOperations {
                         .reduce((x,y) -> new Tuple2<String, Integer>(x.f0, x.f1 + y.f1));
 
             /****************************************************************************
-             *                    Write the summary to an output sink
+             *                     Write the summary to a file sink
              ****************************************************************************/
 
             /* Flink allows output of streaming operations to be sent to various types of streaming sinks, including

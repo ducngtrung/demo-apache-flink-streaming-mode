@@ -39,7 +39,7 @@ public class WindowJoin {
              *                         Set up Flink environment
              ****************************************************************************/
 
-            // Set up the streaming execution environment
+            //Set up the streaming execution environment
             final StreamExecutionEnvironment streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
 
             /****************************************************************************
@@ -116,7 +116,7 @@ public class WindowJoin {
              ****************************************************************************/
 
             /* We will join both streams based on User, with a window of 5 seconds.
-            For each matching record, we will output the username and the count. */
+            For each set of matched records, we will output the username and the count. */
             DataStream<Tuple2<String, Integer>> joinCounts =
                     fileTrailObj.join(kafkaTrailObj)    //Join two data streams
 
@@ -143,9 +143,9 @@ public class WindowJoin {
                         /* How would this window join work?
                         Within a given window, if there are 2 records for a given user in the first stream and
                         3 records for the same user in the second stream, the joined stream will have 6 records (2x3).
-                        It is a Cartesian product of the matching records. */
+                        This is a Cartesian product of the matching records. */
 
-                        /* Apply a custom Join Function against each matched combination of records.
+                        /* Apply a custom Join Function against each set of matched records.
                         This Join Function has access to the corresponding source records on both input data streams. */
                         .apply( new JoinFunction<
                                 AuditTrail, AuditTrail,     //2 records as inputs

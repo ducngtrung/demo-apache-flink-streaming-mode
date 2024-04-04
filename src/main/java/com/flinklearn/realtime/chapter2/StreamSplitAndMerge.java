@@ -19,7 +19,7 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
 /*
-A Flink program to demonstrate splitting data streams (using Side Output) and merging multiple streams.
+A Flink program to demonstrate splitting data stream (using Side Output) and merging multiple streams.
  */
 
 public class StreamSplitAndMerge {
@@ -32,7 +32,7 @@ public class StreamSplitAndMerge {
              *                          Set up Flink environment
              ****************************************************************************/
 
-            // Set up the streaming execution environment
+            //Set up the streaming execution environment
             final StreamExecutionEnvironment streamEnv = StreamExecutionEnvironment.getExecutionEnvironment();
 
             /****************************************************************************
