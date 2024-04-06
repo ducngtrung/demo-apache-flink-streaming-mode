@@ -115,8 +115,7 @@ public class WindowJoin {
              *                  Join both streams based on the same window
              ****************************************************************************/
 
-            /* We will join both streams based on User, with a window of 5 seconds.
-            For each set of matched records, we will output the username and the count. */
+            //We will join both streams based on User, with a window of 5 seconds
             DataStream<Tuple2<String, Integer>> joinCounts =
                     fileTrailObj.join(kafkaTrailObj)    //Join two data streams
 
@@ -148,16 +147,17 @@ public class WindowJoin {
                         /* Apply a custom Join Function against each set of matched records.
                         This Join Function has access to the corresponding source records on both input data streams. */
                         .apply( new JoinFunction<
-                                AuditTrail, AuditTrail,     //2 records as inputs
-                                Tuple2<String,Integer>      //output (a Tuple with the username and a count of 1)
-                                >() {
+                                    AuditTrail, AuditTrail,     //2 records as inputs
+                                    Tuple2<String,Integer>      //output (a Tuple with the username and a count of 1)
+                                    >() {
                             @Override
-                            public Tuple2<String, Integer> join(AuditTrail fileTrail, AuditTrail kafkaTrail) throws Exception {
-                                return new Tuple2<String, Integer>(fileTrail.getUser(), 1);
+                            public Tuple2<String,Integer>
+                                join(AuditTrail fileTrail, AuditTrail kafkaTrail) throws Exception {
+                                    return new Tuple2<String,Integer>(fileTrail.getUser(),1);
                             }
                         } );
 
-            //Print the counts
+            //For each set of matched records, we will output the username and the count
             joinCounts.print();
 
             /****************************************************************************

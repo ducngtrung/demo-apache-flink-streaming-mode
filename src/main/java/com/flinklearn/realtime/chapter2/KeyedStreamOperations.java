@@ -75,7 +75,7 @@ public class KeyedStreamOperations {
                         } )
                         .keyBy(0)  //Partition by user, and distribute the partitions to separate task slots
                         //Use Reduce to accumulate the duration of each user
-                        .reduce((x,y) -> new Tuple2<String,Integer>( x.f0, x.f1 + y.f1));
+                        .reduce((x,y) -> new Tuple2<String, Integer>(x.f0, x.f1 + y.f1));
 
             //Print user and running total duration
             userDuration.print();

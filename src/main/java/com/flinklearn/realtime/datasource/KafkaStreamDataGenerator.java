@@ -109,6 +109,8 @@ public class KafkaStreamDataGenerator implements Runnable {
 
             }
 
+            kafkaProducer.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
