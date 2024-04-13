@@ -29,7 +29,7 @@ public class WindowOperations {
 
     public static void main(String[] args) {
 
-        try{
+        try {
 
             /****************************************************************************
              *                         Set up Flink environment
@@ -167,8 +167,7 @@ public class WindowOperations {
             Here we explicitly call execute() on the streamEnv object to trigger program execution. */
             streamEnv.execute("Flink Streaming - Windowing Example");
 
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

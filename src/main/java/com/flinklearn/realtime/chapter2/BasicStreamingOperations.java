@@ -102,17 +102,17 @@ public class BasicStreamingOperations {
             FileUtils.cleanDirectory(new File(outputDir));
 
             //Set up a streaming file sink pointed to the output directory
-            final StreamingFileSink<Tuple2<String,Integer>> countSink
+            final StreamingFileSink<Tuple2<String,Integer>> fileSink
                     = StreamingFileSink
                         .forRowFormat(
-                                new Path(outputDir),
-                                // Declare data type to match the data that is being written
-                                new SimpleStringEncoder<Tuple2<String,Integer>>("UTF-8")
+                            new Path(outputDir),
+                            // Declare data type to match the data that is being written
+                            new SimpleStringEncoder<Tuple2<String,Integer>>("UTF-8")
                         )
                         .build();
 
             //Attach the sink to the DataStream
-            recordCount.addSink(countSink);
+            recordCount.addSink(fileSink);
 
             /****************************************************************************
              *           Set up data source and execute the streaming pipeline
