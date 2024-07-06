@@ -97,7 +97,7 @@ public class KafkaStreamDataGenerator implements Runnable {
                                 currentTime,    //key
                                 String.join(",", textArr)   //value
                         );
-                //Publish the producer record to Kafka and collect its metadata for future use
+                //Publish the record to Kafka and collect its metadata for future use
                 RecordMetadata recordMetadata = kafkaProducer.send(record).get();
 
                 //Use ANSI code to print colored text in console
